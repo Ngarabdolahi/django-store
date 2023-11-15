@@ -1,0 +1,78 @@
+{% extends 'index.html' %}
+{% block content %}
+<form id="frm1" action="/app/categories/store/" method="post">
+    categories name :<input name="name" type="text">
+    <br>
+    <input type="hidden" name="id" value="0">
+    <br>
+    <input type="submit">
+</form>
+<table border="1" id="tbl1">
+</table>  
+{% endblock %}
+{% block scripts %}
+    <script>
+        function getCategory() {
+        $.ajax({
+            url: "/app/categories/get/data/",
+            method: "post",
+            dataType: "Json",
+            success: function (result) {
+                $("#tbl1").empty()
+                let categories = result.categories
+                for (let category of categories)
+                    $("#tbl1").append(`<tr><td>${category.id}</td>
+                <td>${category.name}</td>
+                <td><a class="del"  href="/app/categories/delete/${category.id}/">delete</a></td>
+                <td><a class="edit"  href="/app/categories/edit/${category.id}/">edit</a></td></tr>`)
+            }
+        })
+    }
+    getCategory()
+    $("#frm1").submit(function(event) {
+            event.preventDefault()
+            $.ajax({
+                url:$("#frm1").attr("action"),
+                method:$("#frm1").attr("method"),
+                dataType:"json", 
+                data:$("#frm1").serialize(),
+                success:function(result){
+                    if(result.message == "saved"){
+                        getCategory()
+                    }else{
+                        alert("error")
+                    }
+                }
+            })
+
+        })
+        $("#tbl1").on("click",".del",function(){
+            let url = $(this).attr("href")
+            $.ajax({
+                url:url,
+                method:"get",
+                dataType:"json", 
+                success:function(result){
+                    if(result.message == "success"){
+                        getCategory()
+                    }else{
+                        alert("category is already in use")
+                    }
+                }
+            })
+            return false
+        })
+        $("#tbl1").on("click",".edit",function(){
+            let url = $(this).attr("href")
+            $.ajax({
+                url:url,
+                method:"post",
+                success:function(result){
+                    $("input[name=categories]").val(result.name)
+                    $("input[name=id]").val(result.id)
+                }
+            })
+            return false
+        })
+    </script>
+{% endblock %}

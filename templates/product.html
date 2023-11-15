@@ -1,0 +1,163 @@
+{% extends 'index.html' %}
+{% block content %}
+<form id="frm1" action="/app/products/store/" method="post">
+    product name :<input name="name" type="text">
+    <br>
+    product price:<input name="price" type="number">
+    <br>
+    product brand:<select name="brand" id="brnd1"></select>
+    <input type="button" id="btn1" value="new brand">
+    <br>
+    product categories:<div class="ctg"></div>
+    <input type="button" id="btn2" value="new categories">
+    <br>
+    <input type="submit">
+</form>
+    <div id="ex1" class="modal">
+        <form id="brnd" action="/app/brands/store/" method="post">
+            brand: <input type="text" name="brand">
+            <br>
+            <input type="submit" value="save">
+        </form>
+    </div>
+    <div id="ex2" class="modal">
+        <form id="ctg" action="/app/categories/store/" method="post">
+            categories: <input type="text" name="categories">
+            <br>
+            <input type="submit" value="save">
+        </form>
+    </div>
+    <div id="ex3" class="modal">
+        <p>error</p>
+    </div>
+{% endblock %}
+{% block scripts %}
+<script>
+    function getBrand(){
+            $.ajax({
+                url: "/app/brands/get/data/",
+                method: "post",
+                dataType: "Json",
+                success:function(result){
+                    $(".brnd").empty()
+                    for (let brand of result.brands){
+                        $("select[name=brand]").append(`<option selected value=${brand.id}>${brand.name}</option>`)
+                    
+                    }
+                }
+            })
+        }
+        getBrand()
+        function getCategory(){
+            $.ajax({
+                url: "/app/categories/get/data/",
+                method: "post",
+                dataType: "Json",
+                success:function(result){
+                    $(".ctg").empty()
+                    for (let category of result.categories){
+                        $(".ctg").append(`<input type="checkbox" name="categories" value=${category.id}>${category.name}<br>`)
+                    
+                }
+                }
+            })
+        }
+        getCategory()
+        function getProduct() {
+        $.ajax({
+            url: "/app/products/get/data/",
+            method: "post",
+            dataType: "Json",
+            success: function (result) {
+                $("#tbl1").empty()
+                let products = result.products
+                for (let product of products)
+                    $("#tbl1").append(`<tr><td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.price}</td>
+                <td>${product.brand}</td>
+                <td>${product.categories}</td></tr>`)
+            }
+        })
+    }
+    getProduct()
+        $("#frm1").submit(function(event) {
+            event.preventDefault()
+            $.ajax({
+                url:$("#frm1").attr("action"),
+                method:$("#frm1").attr("method"),
+                dataType:"json", 
+                data:$("#frm1").serialize(),
+                success:function(result){
+                    if(result.message == "saved"){
+                        window.location="/app/products/"
+                    }else{
+                        alert("error")
+                    }
+                }
+            })
+
+        })
+    $("#btn1").click(function(){
+        $("#ex1").modal()
+        $("#brnd").submit(function(event) {
+            event.preventDefault()
+            $.ajax({
+                url:$("#brnd").attr("action"),
+                method:$("#brnd").attr("method"),
+                dataType:"json", 
+                data:$("#brnd").serialize(),
+                success:function(result){
+                    if(result.message == "saved"){
+                        $("#brnd1").empty()
+                        getBrand()
+                    }else{
+                        alert("error")
+                    }
+                }
+            })
+
+        })
+    })
+    $("#btn2").click(function(){
+        $("#ex2").modal()
+        $("#ctg").submit(function(event) {
+            event.preventDefault()
+            $.ajax({
+                url:$("#ctg").attr("action"),
+                method:$("#ctg").attr("method"),
+                dataType:"json", 
+                data:$("#ctg").serialize(),
+                success:function(result){
+                    if(result.message == "saved"){
+                        $(".ctg").empty()
+                        getCategory()
+                    }else{
+                        alert("category i already in use")
+                    }
+                }
+            })
+
+        })
+    })
+    let url = window.location + ""
+        if (url.includes("edit")==true){
+            let parts = url.split("/")
+            let id = parts.at(-2)
+            console.log(id)
+                $.ajax({
+                    url:"/app/products/get/one/",
+                    method:"post",
+                    dataType:"json",
+                    data:{"id":id},
+                    success:function(result){
+                        console.log(result)
+                        $("input[name=name]").val(result.name)
+                        $("input[name=price]").val(result.price)
+                       // $("input[name=brand]").val(result.brand)
+                        //$("input[name=categories]").prop("checked",result.categories)
+                    }
+                })
+            }
+    </script>
+{% endblock %}
