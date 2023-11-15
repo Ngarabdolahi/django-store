@@ -80,11 +80,18 @@ def sellers_get_data(request):
                     "address":seller.address})
     return JsonResponse({"sellers":slr})
 def sellers_store(request):
-    name = request.POST["name"]
-    address = request.POST["address"]
-    sellers = models.Seller.objects.create(name = name,address=address)
-    sellers.save()
-    return JsonResponse({"message":"saved"}) 
+    id = int(request.POST["id"])
+    if id == 0:
+        name = request.POST["name"]
+        address = request.POST["address"]
+        sellers = models.Seller.objects.create(name = name,address=address)
+        return JsonResponse({"message":"saved"})
+    else :
+        seller = models.Seller.objects.get(id=id)
+        seller.name = request.POST["name"]
+        seller.address = request.POST["address"]
+        seller.save()
+        return JsonResponse({"message":"saved"})
 def sellers_delete(request,id):
     seller = models.Seller.objects.get(id=id)
     seller.delete()
@@ -97,12 +104,19 @@ def categories_get_data(request):
                     "name":category.name})
     return JsonResponse({"categories":ctg})
 def categories_store(request):
-    name = request.POST["categories"]
-    if len(models.Category.objects.filter(name = name))==0:
-        models.Category.objects.create(name = name)
+    id = int(request.POST["id"])
+    if id == 0:
+        name = request.POST["categories"]
+        if len(models.Category.objects.filter(name = name))==0:
+            models.Category.objects.create(name = name)
+            return JsonResponse({"message":"saved"})
+        else:
+            return JsonResponse({"message":"error"})
+    else :
+        category = models.Category.objects.get(id=id)
+        category.name = request.POST["categories"]
+        category.save()
         return JsonResponse({"message":"saved"})
-    else:
-        return JsonResponse({"message":"error"})
 def categories_delete(request,id):
     categories = models.Category.objects.get(id=id)
     products = models.Product.objects.filter(categories = categories)
